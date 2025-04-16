@@ -1,0 +1,37 @@
+{
+  "name": "@freshsqueezed/tesseract",
+  "version": "0.0.1",
+  "description": "A modular TypeScript framework for building multi-step agents with RAG and evaluation tools — by @freshsqueezed.",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": [
+    "agent",
+    "framework",
+    "rag",
+    "llm",
+    "evaluation",
+    "typescript",
+    "ai",
+    "openai",
+    "toolformer",
+    "autonomous-agent",
+    "retrieval"
+  ],
+  "author": "Fresh Squeezed <team@freshsqueezed.ai>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/freshsqueezed/tesseract.git"
+  },
+  "bugs": {
+    "url": "https://github.com/freshsqueezed/tesseract/issues"
+  },
+  "homepage": "https://github.com/freshsqueezed/tesseract#readme",
+  "devDependencies": {
+    "prettier": "3.5.3"
+  }
+}
