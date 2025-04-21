@@ -1,37 +1,37 @@
 {
   "name": "@freshsqueezed/tesseract",
-  "version": "0.0.1",
-  "description": "A modular TypeScript framework for building multi-step agents with RAG and evaluation tools — by @freshsqueezed.",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "version": "0.1.0",
+  "description": "A TypeScript AI agent and RAG library with evaluation framework",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/index.ts"
+    "test": "jest"
   },
   "keywords": [
-    "agent",
-    "framework",
-    "rag",
-    "llm",
-    "evaluation",
-    "typescript",
     "ai",
-    "openai",
-    "toolformer",
-    "autonomous-agent",
-    "retrieval"
+    "agent",
+    "llm",
+    "workflow",
+    "typescript"
   ],
-  "author": "Fresh Squeezed <team@freshsqueezed.ai>",
+  "author": "Matt Gordon <matt@lemonade.com>",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/freshsqueezed/tesseract.git"
+  "dependencies": {
+    "openai": "^4.28.0",
+    "zod": "^3.22.4"
   },
-  "bugs": {
-    "url": "https://github.com/freshsqueezed/tesseract/issues"
-  },
-  "homepage": "https://github.com/freshsqueezed/tesseract#readme",
   "devDependencies": {
-    "prettier": "3.5.3"
+    "@tsconfig/node22": "^22.0.1",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.19",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.3.3"
   }
 }
