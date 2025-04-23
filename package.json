@@ -2,8 +2,8 @@
   "name": "@freshsqueezed/tesseract",
   "version": "0.1.0",
   "description": "A TypeScript AI agent and RAG library with evaluation framework",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist",
     "README.md"
@@ -33,5 +33,9 @@
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
     "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "lowdb": "^7.0.1",
+    "uuid": "^11.1.0"
   }
 }

@@ -1,25 +1,47 @@
-import { AgentConfig, Flow } from '../types';
+import type { AIMessage } from '../types';
+import type { Store } from '../memory';
+import { LLM } from '../llm';
 
 export class Agent {
   public readonly name: string;
   public readonly description: string;
-  public readonly context: AgentConfig['context'];
-  public readonly flows: Flow[];
+  private store: Store;
+  private llm: LLM;
 
-  constructor(config: AgentConfig) {
+  constructor(config: {
+    name: string;
+    description: string;
+    store: Store;
+    llm: LLM;
+  }) {
     this.name = config.name;
     this.description = config.description;
-    this.context = config.context;
-    this.flows = config.flows ?? [];
+    this.store = config.store;
+    this.llm = config.llm;
   }
 
-  async runFlow(name: string, input: any): Promise<any> {
-    const flow = this.flows.find((f) => f.name === name);
-    if (!flow) throw new Error(`Flow "${name}" not found`);
-    return flow.run(input, this.context);
-  }
+  async run(input: string | { messages: AIMessage[] }): Promise<string> {
+    const history = await this.store.getMessages();
 
-  async run(input: string): Promise<any> {
-    return this.runFlow('schedule_event', input);
+    const newMessages =
+      typeof input === 'string'
+        ? [{ role: 'user', content: input } as const]
+        : input.messages.slice(history.length);
+
+    const context = [...history, ...newMessages];
+
+    const res = await this.llm.run({
+      messages: context,
+    });
+
+    await this.store.addMessages([
+      ...newMessages,
+      {
+        role: 'assistant',
+        content: res,
+      },
+    ]);
+
+    return res;
   }
 }

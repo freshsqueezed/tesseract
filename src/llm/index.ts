@@ -1,23 +1,28 @@
-import { LLMProvider, LLMConfig, LLMProviderEnum } from '../types';
-import OpenAI from './openai';
+import OpenAI from 'openai';
+import type { AIMessage } from '../types';
 
-export class LLM implements LLMProvider {
-  private backend: LLMProvider;
+export class LLM {
+  private client: OpenAI;
+  private model: string;
+  private temperature: number;
 
-  constructor(config: LLMConfig) {
-    switch (config.provider) {
-      case LLMProviderEnum.OPEN_AI:
-      default:
-        this.backend = new OpenAI(config);
-        break;
-    }
+  constructor(config: {
+    model?: string;
+    temperature?: number;
+    client?: OpenAI;
+  }) {
+    this.model = config.model || 'gpt-4o-mini';
+    this.temperature = config.temperature ?? 0.1;
+    this.client = config.client || new OpenAI();
   }
 
-  async call(messages: any[]) {
-    return this.backend.call(messages);
-  }
+  async run({ messages }: { messages: AIMessage[] }): Promise<string> {
+    const { choices } = await this.client.chat.completions.create({
+      model: this.model,
+      temperature: this.temperature,
+      messages,
+    });
 
-  async generate(systemPrompt: string, userInput: string) {
-    return this.backend.generate(systemPrompt, userInput);
+    return choices[0]?.message?.content ?? '';
   }
 }

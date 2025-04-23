@@ -1,25 +1,47 @@
-import type { Memory } from '../types';
+import { Low } from 'lowdb';
+import { v4 as uuidv4 } from 'uuid';
+import type { AIMessage } from '../types';
 
-export class InMemoryCache implements Memory {
-  private store = new Map<string, unknown>();
+export type MessageWithMetaData = AIMessage & {
+  id: string;
+  createdAt: string;
+};
 
-  constructor(initial?: Record<string, unknown>) {
-    if (initial) {
-      for (const [key, value] of Object.entries(initial)) {
-        this.store.set(key, value);
-      }
-    }
+export type Data = {
+  messages: MessageWithMetaData[];
+};
+
+export interface Store {
+  addMessages(messages: AIMessage[]): Promise<void>;
+  getMessages(): Promise<AIMessage[]>;
+}
+
+export class InMemoryStore implements Store {
+  private db: Low<Data>;
+
+  constructor({ db }: { db: Low<Data> }) {
+    this.db = db;
   }
 
-  async get<T = unknown>(key: string): Promise<T | undefined> {
-    return this.store.get(key) as T | undefined;
+  private addMetaData(message: AIMessage): MessageWithMetaData {
+    return {
+      ...message,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+    };
   }
 
-  async set<T = unknown>(key: string, value: T): Promise<void> {
-    this.store.set(key, value);
+  private removeMetaData(message: MessageWithMetaData): AIMessage {
+    const { id, createdAt, ...rest } = message;
+    return rest;
   }
 
-  async clear(): Promise<void> {
-    this.store.clear();
+  async addMessages(messages: AIMessage[]): Promise<void> {
+    this.db.data.messages.push(...messages.map(this.addMetaData));
+    await this.db.write();
+  }
+
+  async getMessages(): Promise<AIMessage[]> {
+    return this.db.data.messages.map(this.removeMetaData);
   }
 }
