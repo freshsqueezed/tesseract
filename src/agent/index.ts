@@ -28,6 +28,7 @@ export class Agent {
         turn++;
 
         const history = await this.context.store.getMessages();
+
         const response = await this.context.llm.run({
           messages: history,
           tools: this.context.registry,
@@ -45,6 +46,7 @@ export class Agent {
           const toolResponse = await this.context.registry?.execute(
             toolCall,
             input,
+            this.context,
           );
 
           await this.context.store.saveToolResponse(

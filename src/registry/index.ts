@@ -1,5 +1,6 @@
 import { ChatCompletionMessageToolCall } from 'openai/resources/chat/completions';
 import { Tool } from '../tool';
+import { Context } from '../context';
 
 type ToolMap = Record<string, Tool>;
 
@@ -21,7 +22,8 @@ export class ToolRegistry {
   async execute(
     toolCall: ChatCompletionMessageToolCall,
     userInput: string,
-  ): Promise<string> {
+    context: Context,
+  ): Promise<string | undefined> {
     const toolName = toolCall.function.name;
     const tool = this.tools[toolName];
 
@@ -32,8 +34,9 @@ export class ToolRegistry {
     const parsedArgs = JSON.parse(toolCall.function.arguments || '{}');
 
     return await tool.handler({
-      userInput,
+      userInput: userInput,
       toolArgs: parsedArgs,
+      context,
     });
   }
 }

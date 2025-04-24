@@ -26,6 +26,19 @@ export class LLM {
     this.client = config.client || new OpenAI();
   }
 
+  async generateImage({ model, prompt, number, size }: any) {
+    const response = await this.client.images.generate({
+      model,
+      prompt,
+      n: number,
+      size,
+    });
+
+    const imageUrl = response.data[0].url!;
+
+    return imageUrl;
+  }
+
   async run({ messages, tools }: LLMRunArgs): Promise<ChatCompletionMessage> {
     const availableTools = tools?.getAll();
 
