@@ -4,6 +4,14 @@ Tesseract is a lightweight agent framework for building AI assistants powered by
 
 ---
 
+## 📦 Installation
+
+```bash
+npm install @freshsqueezed/tesseract
+```
+
+---
+
 ## 🚀 Quickstart
 
 ```ts
@@ -17,11 +25,7 @@ import {
   ToolRegistry,
 } from '@freshsqueezed/tesseract';
 import { JSONFilePreset } from 'lowdb/node';
-import {
-  dadJoke as dad_joke,
-  generateImage as generate_image,
-  reddit,
-} from './tools';
+import { dadJoke, generateImage, reddit } from './tools';
 
 const main = async () => {
   const defaultData: Data = { messages: [] };
@@ -36,9 +40,7 @@ const main = async () => {
         model: 'gpt-4o-mini',
       }),
       registry: new ToolRegistry({
-        dad_joke,
-        reddit,
-        generate_image,
+        tools: [dadJoke, reddit, generateImage],
       }),
       store: new InMemoryStore({
         db,
@@ -91,14 +93,6 @@ export const generateImage = new Tool({
 ## 💾 Memory & Storage
 
 Tesseract supports multiple memory backends. This example uses `lowdb` for persistent storage via `InMemoryStore`.
-
----
-
-## 📦 Installation
-
-```bash
-npm install @freshsqueezed/tesseract
-```
 
 ---
 
