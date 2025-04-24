@@ -21,7 +21,12 @@ export class Agent {
         },
       ]);
 
-      while (true) {
+      const maxTurns = 10;
+      let turn = 0;
+
+      while (turn < maxTurns) {
+        turn++;
+
         const history = await this.context.store.getMessages();
         const response = await this.context.llm.run({
           messages: history,
@@ -34,7 +39,7 @@ export class Agent {
           return await this.context.store.getMessages();
         }
 
-        if (response.tool_calls) {
+        if (response.tool_calls?.length) {
           const [toolCall] = response.tool_calls;
 
           const toolResponse = await this.context.registry?.execute(
@@ -46,8 +51,12 @@ export class Agent {
             toolCall.id,
             toolResponse as string,
           );
+        } else {
+          break;
         }
       }
+
+      return await this.context.store.getMessages();
     } catch (err) {
       if (err instanceof Error) {
         throw new Error(err.message);
