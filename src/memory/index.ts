@@ -14,6 +14,7 @@ export type Data = {
 export interface Store {
   addMessages(messages: AIMessage[]): Promise<void>;
   getMessages(): Promise<AIMessage[]>;
+  saveToolResponse(toolCallId: string, toolResponse: string): Promise<void>;
 }
 
 export class InMemoryStore implements Store {
@@ -43,5 +44,15 @@ export class InMemoryStore implements Store {
 
   async getMessages(): Promise<AIMessage[]> {
     return this.db.data.messages.map(this.removeMetaData);
+  }
+
+  async saveToolResponse(toolCallId: string, toolResponse: string) {
+    return this.addMessages([
+      {
+        role: 'tool',
+        content: toolResponse,
+        tool_call_id: toolCallId,
+      },
+    ]);
   }
 }

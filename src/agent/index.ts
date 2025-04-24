@@ -1,47 +1,57 @@
-import type { AIMessage } from '../types';
-import type { Store } from '../memory';
-import { LLM } from '../llm';
+import { Context } from '../context';
+import { AIMessage } from '../types';
 
 export class Agent {
   public readonly name: string;
   public readonly description: string;
-  private store: Store;
-  private llm: LLM;
+  private context: Context;
 
-  constructor(config: {
-    name: string;
-    description: string;
-    store: Store;
-    llm: LLM;
-  }) {
+  constructor(config: { name: string; description: string; context: Context }) {
     this.name = config.name;
     this.description = config.description;
-    this.store = config.store;
-    this.llm = config.llm;
+    this.context = config.context;
   }
 
-  async run(input: string | { messages: AIMessage[] }): Promise<string> {
-    const history = await this.store.getMessages();
+  async run(input: string): Promise<AIMessage[] | undefined> {
+    try {
+      await this.context.store.addMessages([
+        {
+          role: 'user',
+          content: input,
+        },
+      ]);
 
-    const newMessages =
-      typeof input === 'string'
-        ? [{ role: 'user', content: input } as const]
-        : input.messages.slice(history.length);
+      while (true) {
+        const history = await this.context.store.getMessages();
+        const response = await this.context.llm.run({
+          messages: history,
+          tools: this.context.registry,
+        });
 
-    const context = [...history, ...newMessages];
+        await this.context.store.addMessages([response]);
 
-    const res = await this.llm.run({
-      messages: context,
-    });
+        if (response.content) {
+          return await this.context.store.getMessages();
+        }
 
-    await this.store.addMessages([
-      ...newMessages,
-      {
-        role: 'assistant',
-        content: res,
-      },
-    ]);
+        if (response.tool_calls) {
+          const [toolCall] = response.tool_calls;
 
-    return res;
+          const toolResponse = await this.context.registry?.execute(
+            toolCall,
+            input,
+          );
+
+          await this.context.store.saveToolResponse(
+            toolCall.id,
+            toolResponse as string,
+          );
+        }
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new Error(err.message);
+      }
+    }
   }
 }
