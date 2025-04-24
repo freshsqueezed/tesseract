@@ -1,129 +1,113 @@
-# @freshsqueezed/tesseract
+# 🧠 Tesseract — Tool-Using AI Agent Framework
 
-**Tesseract** is a lightweight, modular TypeScript framework for building intelligent, LLM-powered agents using tasks, tools, flows, and memory.
+Tesseract is a lightweight agent framework for building AI assistants powered by OpenAI's function calling and tool use APIs. It's designed to make tool-augmented reasoning simple, modular, and expressive — whether you're working with a single tool or a full suite.
 
 ---
 
-## 🚀 Example Usage
+## 🚀 Quickstart
 
 ```ts
 import 'dotenv/config';
-import z from 'zod';
 import {
   Agent,
   Data,
   InMemoryStore,
   LLM,
   Context,
-  Tool,
   ToolRegistry,
 } from '@freshsqueezed/tesseract';
 import { JSONFilePreset } from 'lowdb/node';
+import {
+  dadJoke as dad_joke,
+  generateImage as generate_image,
+  reddit,
+} from './tools';
 
-const db = await JSONFilePreset('db.json', {
-  messages: [],
-} as Data);
+const main = async () => {
+  const defaultData: Data = { messages: [] };
 
-const store = new InMemoryStore({ db });
+  const db = await JSONFilePreset('db.json', defaultData);
 
-const registry = new ToolRegistry({
-  get_weather: new Tool({
-    name: 'get_weather',
-    description: 'use this tool to get the weather.',
-    parameters: z.object({
-      reasoning: z.string().describe('Why did you pick this tool?'),
+  const agent = new Agent({
+    name: 'Joe',
+    description: 'Average Joe AI assistant',
+    context: new Context({
+      llm: new LLM({
+        model: 'gpt-4o-mini',
+      }),
+      registry: new ToolRegistry({
+        dad_joke,
+        reddit,
+        generate_image,
+      }),
+      store: new InMemoryStore({
+        db,
+      }),
     }),
-    handler: async () => {
-      return 'Hot, 90 deg';
-    },
-  }),
-});
+  });
 
-const llm = new LLM({
-  model: 'gpt-4o-mini',
-});
+  const response = await agent.run(
+    'Make me a meme image from a random dad joke',
+  );
 
-const agent = new Agent({
-  name: 'Joe',
-  description: 'Average Joe AI assistant',
-  context: new Context({
-    llm,
-    store,
-    registry,
-  }),
-});
+  console.log(response?.pop());
+};
 
-const response = await agent.run('Hows the weather in CO?');
-
-console.log(response?.pop());
-
-// response:
-// {
-//   role: 'assistant',
-//   content: 'The current weather in Colorado is hot, with a temperature of 90 degrees. If you need more specific information or a forecast, let me know!',
-//   refusal: null,
-//   annotations: []
-// }
+main();
 ```
 
 ---
 
-## 🧩 Key Concepts
+## 🛠 Define Your Tools
 
-- **Agent**: The core loop that handles reasoning, tool use, and message flow.
-- **Tool**: A callable function the agent can use (e.g., weather API, calculator).
-- **ToolRegistry**: A collection of available tools.
-- **LLM**: The interface to the OpenAI model.
-- **Store**: Memory storage to maintain conversation context.
-- **Context**: Binds together the LLM, memory, and tools into a runtime environment.
+Here's an example tool that uses OpenAI's image generation:
+
+```ts
+import { Tool } from '@freshsqueezed/tesseract';
+import * as z from 'zod';
+
+export const generateImage = new Tool({
+  name: 'generate_image',
+  description: 'Generate an image.',
+  parameters: z.object({
+    prompt: z.string().describe('Prompt for the image generation.'),
+    reasoning: z.string().describe('Why this tool was selected.'),
+  }),
+  handler: async ({ toolArgs, context }) => {
+    const response = await context.llm.generateImage({
+      model: 'dall-e-3',
+      prompt: toolArgs.prompt,
+      n: 1,
+      size: '1024x1024',
+    });
+
+    return response.data[0].url;
+  },
+});
+```
+
+---
+
+## 💾 Memory & Storage
+
+Tesseract supports multiple memory backends. This example uses `lowdb` for persistent storage via `InMemoryStore`.
 
 ---
 
 ## 📦 Installation
 
 ```bash
-npm install @freshsqueezed/tesseract zod lowdb
-```
-
-Make sure to set your OpenAI API key in an `.env` file:
-
-```bash
-OPENAI_API_KEY=your_api_key_here
+npm install @freshsqueezed/tesseract
 ```
 
 ---
 
-## ✍️ Authoring Your Own Tools
+## 🧪 Coming Soon
 
-You can create tools by defining:
-
-- A `name`
-- A `description`
-- A `zod` schema for `parameters`
-- An `async handler` function
-
-Tools will be selected by the LLM automatically based on input intent.
+- Web tool runners
+- Built-in search, summarization, image parsing tools
+- CLI and REPL interface
 
 ---
 
-## 🧠 Memory
-
-The memory system can persist messages using `lowdb` or any other backend. This helps keep track of context across turns.
-
----
-
-## 🛠️ Development
-
-- Node.js 18+ recommended
-- Uses native `fetch` for API calls
-- Fully ESM compatible
-
----
-
-## 🧪 Example Output
-
-```
-Executing: get_weather
-Executed: get_weather
-The weather in NY is: Hot, 90 deg.
-```
+Made with 🍊 by Fresh Squeezed Labs

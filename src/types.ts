@@ -10,7 +10,3 @@ export type AIMessage =
   | ChatCompletionAssistantMessageParam
   | ChatCompletionSystemMessageParam
   | ChatCompletionToolMessageParam;
-
-export interface ToolFn<A = unknown, T = unknown> {
-  (input: { userMessage: string; toolArgs: A }): Promise<T>;
-}
