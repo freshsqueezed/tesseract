@@ -2,21 +2,29 @@ import { ChatCompletionMessageToolCall } from 'openai/resources/chat/completions
 import { Tool } from '../tool';
 import { Context } from '../context';
 
-type ToolMap = Record<string, Tool>;
+interface ToolRegistryConfig {
+  tools: Tool[];
+}
 
 export class ToolRegistry {
-  private tools: ToolMap;
+  private toolMap: Record<string, Tool>;
 
-  constructor(tools: ToolMap) {
-    this.tools = tools;
+  constructor(config: ToolRegistryConfig) {
+    this.toolMap = config.tools.reduce(
+      (acc, tool) => {
+        acc[tool.name] = tool;
+        return acc;
+      },
+      {} as Record<string, Tool>,
+    );
   }
 
   getAll(): Tool[] {
-    return Object.values(this.tools);
+    return Object.values(this.toolMap);
   }
 
   get(name: string): Tool | undefined {
-    return this.tools[name];
+    return this.toolMap[name];
   }
 
   async execute(
@@ -25,7 +33,7 @@ export class ToolRegistry {
     context: Context,
   ): Promise<string | undefined> {
     const toolName = toolCall.function.name;
-    const tool = this.tools[toolName];
+    const tool = this.toolMap[toolName];
 
     if (!tool) {
       throw new Error(`Tool not found in registry: ${toolName}`);
@@ -34,7 +42,7 @@ export class ToolRegistry {
     const parsedArgs = JSON.parse(toolCall.function.arguments || '{}');
 
     return await tool.handler({
-      userInput: userInput,
+      userInput,
       toolArgs: parsedArgs,
       context,
     });
